@@ -9,8 +9,8 @@ RUN apt update -y && apt install -y --no-install-recommends curl supervisor libg
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -kL https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-free.tar.gz -o /tmp/iventoy.tar.gz && \
-    tar -xvzf /tmp/iventoy.tar.gz -C / && \
-    mv /iventoy-${IVENTOY_VERSION} /iventoy && \
+    tar -xvzf /tmp/iventoy.tar.gz -C /tmp && \
+    mv /tmp/iventoy-${IVENTOY_VERSION} /iventoy && \
     mkdir -p /var/log/supervisor && \
     rm -f /tmp/iventoy.tar.gz
 
