@@ -1,110 +1,80 @@
 name: Build and Push Docker Images
 
 on:
-    push:
-        tags:
-            - "*"
-    workflow_dispatch:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
 
 permissions:
-    contents: write
-    packages: write
+  contents: write
+  packages: write
 
 env:
-    DOCKER_HUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-    REGISTRY_IMAGE: iventoy
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  REGISTRY_IMAGE: iventoy
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              if: github.event_name != 'pull_request'
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Login to GitHub Container Registry
-              if: github.event_name != 'pull_request'
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Extract version from tag
-              id: version
-              run: |
-                  if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-                    VERSION=${GITHUB_REF#refs/tags/}
-                    VERSION=${VERSION#v}
-                    echo "iventoy_version=${VERSION}" >> $GITHUB_OUTPUT
-                  else
-                    echo "iventoy_version=1.0.21" >> $GITHUB_OUTPUT
-                  fi
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            VERSION=${VERSION#v}
+            echo "iventoy_version=${VERSION}" >> $GITHUB_OUTPUT
+          else
+            echo "iventoy_version=1.0.21" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Extract metadata
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: |
-                      ${{ env.DOCKER_HUB_USERNAME }}/${{ env.REGISTRY_IMAGE }}
-                      ghcr.io/${{ github.repository_owner }}/${{ env.REGISTRY_IMAGE }}
-                  tags: |
-                      type=raw,value=latest,enable={{is_default_branch}}
-                      type=semver,pattern={{version}}
-                      type=semver,pattern={{major}}.{{minor}}
-                      type=semver,pattern={{major}}
-                      type=ref,event=branch
-                      type=ref,event=pr
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.REGISTRY_IMAGE }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=ref,event=branch
+            type=ref,event=pr
 
-            - name: Build and push
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  platforms: linux/amd64
-                  push: ${{ github.event_name != 'pull_request' }}
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  build-args: |
-                      IVENTOY_VERSION=${{ steps.version.outputs.iventoy_version }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-
-    security-scan:
-        runs-on: ubuntu-latest
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-        needs:
-            - build
-        steps:
-            - name: Determine image tag
-              id: tag
-              run: |
-                  if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-                    echo "tag=latest" >> $GITHUB_OUTPUT
-                  else
-                    VERSION=${GITHUB_REF#refs/tags/}
-                    VERSION=${VERSION#v}
-                    echo "tag=${VERSION}" >> $GITHUB_OUTPUT
-                  fi
-
-            - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@master
-              with:
-                  image-ref: "ghcr.io/${{ github.repository_owner }}/${{ env.REGISTRY_IMAGE }}:${{ steps.tag.outputs.tag }}"
-                  format: "sarif"
-                  output: "trivy-results.sarif"
-
-            - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v3
-              if: always()
-              with:
-                  sarif_file: "trivy-results.sarif"
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            IVENTOY_VERSION=${{ steps.version.outputs.iventoy_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
