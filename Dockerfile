@@ -8,7 +8,14 @@ ENV IVENTOY_VERSION=${IVENTOY_VERSION:-1.0.21}
 RUN apt update -y && apt install -y --no-install-recommends curl supervisor libglib2.0-dev libevent-dev libwim-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -kL https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-x86_64-free.tar.gz -o /tmp/iventoy.tar.gz && \
+ARG TARGETARCH
+
+RUN case "${TARGETARCH}" in \
+      amd64) ARCH_SUFFIX="x86_64"; EDITION="free" ;; \
+      arm64) ARCH_SUFFIX="arm64"; EDITION="trial" ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac && \
+    curl -kL "https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-${ARCH_SUFFIX}-${EDITION}.tar.gz" -o /tmp/iventoy.tar.gz && \
     tar -xvzf /tmp/iventoy.tar.gz -C /tmp && \
     mv /tmp/iventoy-${IVENTOY_VERSION} /iventoy && \
     chmod +x /iventoy/lib/iventoy && \
