@@ -8,7 +8,7 @@ ENV IVENTOY_VERSION=${IVENTOY_VERSION:-1.0.21}
 RUN apt update -y && apt install -y --no-install-recommends curl supervisor libglib2.0-dev libevent-dev libwim-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -kL https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-free.tar.gz -o /tmp/iventoy.tar.gz && \
+RUN curl -kL https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-x86_64-free.tar.gz -o /tmp/iventoy.tar.gz && \
     tar -xvzf /tmp/iventoy.tar.gz -C /tmp && \
     mv /tmp/iventoy-${IVENTOY_VERSION} /iventoy && \
     chmod +x /iventoy/lib/iventoy && \
