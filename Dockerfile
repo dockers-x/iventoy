@@ -18,6 +18,7 @@ RUN case "${TARGETARCH}" in \
     curl -kL "https://github.com/ventoy/PXE/releases/download/v${IVENTOY_VERSION}/iventoy-${IVENTOY_VERSION}-linux-${ARCH_SUFFIX}-${EDITION}.tar.gz" -o /tmp/iventoy.tar.gz && \
     tar -xvzf /tmp/iventoy.tar.gz -C /tmp && \
     mv /tmp/iventoy-${IVENTOY_VERSION} /iventoy && \
+    chmod +x /iventoy/iventoy.sh && \
     chmod +x /iventoy/lib/iventoy && \
     mkdir -p /var/log/supervisor && \
     rm -f /tmp/iventoy.tar.gz
