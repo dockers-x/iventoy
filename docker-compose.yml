@@ -18,5 +18,3 @@ services:
             - 16000:16000
             - 10809:10809
             - 69:69/udp
-        environment:
-            - IVENTOY_AUTO_RUN=1

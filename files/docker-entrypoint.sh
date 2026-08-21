@@ -15,9 +15,17 @@ for file in iventoy.dat mac.db; do
 done
 
 export IVENTOY_API_ALL="${IVENTOY_API_ALL:-1}"
-export IVENTOY_AUTO_RUN="${IVENTOY_AUTO_RUN:-1}"
 export IVENTOY_NO_DAEMON_MODE=1
 export LD_LIBRARY_PATH="${iventoy_dir}/lib/lin64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+# iVentoy checks only whether IVENTOY_AUTO_RUN exists, not its value. Keep it
+# absent by default (and for values such as 0), otherwise an invalid recovered
+# Server IP makes the management service shut down immediately.
+if [ "${IVENTOY_AUTO_RUN:-0}" = "1" ]; then
+    export IVENTOY_AUTO_RUN
+else
+    unset IVENTOY_AUTO_RUN
+fi
 
 cd "${iventoy_dir}"
 if [ "$#" -eq 0 ]; then

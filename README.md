@@ -48,6 +48,8 @@ Following the official upgrade rules, the container refreshes the version-specif
 docker run -d --privileged -p 69:69 -p 26000:26000 -p 16000:16000 -p 10809:10809 -v /path/to/isos:/iventoy/iso -v /path/to/data:/iventoy/data --name iventoy garybowers/iventoy:latest
 ```
 
+Automatic PXE startup is disabled by default so the admin service remains available when the recovered Server IP is missing or no longer exists on the host. Configure a valid Server IP in the web UI first. To opt in afterward, set `IVENTOY_AUTO_RUN=1`; other values, including `0`, keep automatic startup disabled.
+
 Alternatively run on host mode to serve PXE to docker host's LAN:
 
 ```
