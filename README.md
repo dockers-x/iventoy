@@ -2,16 +2,12 @@
 
 This is a docker container packaging up the iVentoy tool [https://iventoy.com](https://iventoy.com)
 
-The image is based on Debian 12 Bookworm slim version and uses supervisor to launch the process.
-
-Note: The way iVentoy has been developed is really weird, there's no daemon or flags (I can find), so just ignore supervisor warnings for now.
+The image is based on Debian 12 Bookworm slim. iVentoy runs in foreground mode so Docker can supervise it directly and stop it cleanly.
 
 ## Versions
 
 Docker Tag:
-* 1.0.20-1 : iVentoy v1.0.20,  Logs symlinked from /iventoy/log/log.txt to syslog
-* 1.0.20   : iVentoy v1.0.20
-* 1.0.19   : iVentoy v1.0.19
+* latest / 1.0.39: iVentoy v1.0.39
 
 ## Usage
 
@@ -46,28 +42,7 @@ docker run -d --privileged -p 69:69 -p 26000:26000 -p 16000:16000 -p 10809:10809
 
 ### Persisting Configuration
 
-Another oddity with iVentoy it looks for a /iventoy/data/iventoy.dat file and if that doesn't exist on boot it will fail to load, this causes a issue wanting to persist the /iventoy/data folder.
-
-1. Run iVentoy without the data volume mapped 
-```
-docker run -d --privileged -p 69:69 -p 26000:26000 -p 16000:16000 -p 10809:10809 -v /path/to/isos:/iventoy/iso --name iventoy-tmp garybowers/iventoy:latest
-```
-
-copy the contents of the data folder to your persistent storage
-
-```
-sudo docker cp iventoy-tmp:/iventoy/data/iventoy.dat /my/local/storage/iventoy/data/
-sudo docker cp iventoy-tmp:/iventoy/data/config.dat /my/local/storage/iventoy/data/   <---[Might not exist, skip if not]
-sudo docker cp iventoy-tmp:/iventoy/data/mac.db /my/local/storage/iventoy/data/
-```
-
-delete the temporary container
-
-```
-docker rm iventoy-tmp --force
-```
-
-Run iVentoy with the volume for data mounted.
+Following the official upgrade rules, the container refreshes the version-specific `iventoy.dat` and `mac.db` files from the image on every start. Only the generated `config.dat` settings and mounted ISO files are carried across releases. You can therefore mount the persistent data directory on the first run:
 
 ```
 docker run -d --privileged -p 69:69 -p 26000:26000 -p 16000:16000 -p 10809:10809 -v /path/to/isos:/iventoy/iso -v /path/to/data:/iventoy/data --name iventoy garybowers/iventoy:latest

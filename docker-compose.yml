@@ -1,7 +1,10 @@
 ---
-version: "3.8"
 services:
     iVentoy:
+        build:
+            context: .
+            args:
+                IVENTOY_VERSION: "1.0.39"
         image: czyt/iventoy:latest
         container_name: iventoy
         restart: unless-stopped
